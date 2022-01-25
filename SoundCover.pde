@@ -1,69 +1,73 @@
 /**
- * This sketch shows how to use the FFT class to analyze a stream
- * of sound. Change the number of bands to get more spectral bands
- * (at the expense of more coarse-grained time resolution of the spectrum).
+ * This sketch shows how to use the Waveform class to analyze a stream
+ * of sound. Change the number of samples to extract and draw a longer/shorter
+ * part of the waveform.
  */
 
 import processing.sound.*;
 
-// Declare the sound source and FFT analyzer variables
+// Declare the sound source and Waveform analyzer variables
 SoundFile sample;
-FFT fft;
+Waveform waveform;
 
-// Define how many FFT bands to use (this needs to be a power of two)
-int bands = 256;
-
-// Define a smoothing factor which determines how much the spectrums of consecutive
-// points in time should be combined to create a smoother visualisation of the spectrum.
-// A smoothing factor of 1.0 means no smoothing (only the data from the newest analysis
-// is rendered), decrease the factor down towards 0.0 to have the visualisation update
-// more slowly, which is easier on the eye.
-float smoothingFactor = 0.1;
-
-// Create a vector to store the smoothed spectrum data in
-float[] sum = new float[bands];
-
-// Variables for drawing the spectrum:
-// Declare a scaling factor for adjusting the height of the rectangles
-int scale = 2;
-// Declare a drawing variable for calculating the width of the 
-float barWidth;
+// Define how many samples of the Waveform you want to be able to read at once
+int samples = 100;
 
 public void setup() {
-  size(640, 360);
+  size(720, 1280);
   background(255);
-
-  // Calculate the width of the rects depending on how many bands we have
-  barWidth = width/float(bands);
 
   // Load and play a soundfile and loop it.
   sample = new SoundFile(this, "daftpunk.mp3");
+  sample.rate(2);
   sample.loop();
 
-  // Create the FFT analyzer and connect the playing soundfile to it.
-  fft = new FFT(this, bands);
-  fft.input(sample);
+  // Create the Waveform analyzer and connect the playing soundfile to it.
+  waveform = new Waveform(this, samples);
+  waveform.input(sample);
 }
 
 public void draw() {
-  // Set background color, noStroke and fill color
-  background(125, 255, 125);
-  fill(255, 0, 150);
-  noStroke();
+  // Set background color, noFill and stroke style
+  background(0);
+  stroke(255);
+  strokeWeight(2);
+  noFill();
 
   // Perform the analysis
-  fft.analyze();
-
-  for (int i = 0; i < bands; i++) {
-    // Smooth the FFT spectrum data by smoothing factor
-    sum[i] += (fft.spectrum[i] - sum[i]) * smoothingFactor;
-  }
+  waveform.analyze();
   
-  beginShape();
-  for (int i = 0; i <= width; i+=1){
-    vertex(i, (-sum[int(map(i,0,width,0,bands-1))]*scale*height)+300);
+  int shapes = 10;
+  for(int j = 0; j < shapes-1; j++){
+    beginShape();
+    vertex(0, (100*j)+70);
+    vertex(200,(100*j)+70);
+    
+    //draw the sampled active data
+    for(int i = (samples/shapes)*j; i < (samples/shapes)*(j+1); i++){
+      // Draw current data of the waveform
+      // Each sample in the data array is between -1 and +1 
+      vertex(
+        map(i, (samples/shapes)*j, (samples/shapes)*(j+1), 200, 520), //width
+        map(waveform.data[i], -1, 1, 0+(j*70), 70+(j*120))//height
+      );
+    }
+    
+    vertex(520, (100*j)+70);
+    vertex(720,(100*j)+70);
+    endShape();
   }
-  vertex(width, height);
-  vertex(0, height);
+  delay(200);
+  /*
+  beginShape();
+  for(int i = 0; i < samples/10; i++){
+    // Draw current data of the waveform
+    // Each sample in the data array is between -1 and +1 
+    vertex(
+      map(i, 0, samples/10, 20, 700), //width
+      map(waveform.data[i], -1, 1, 0, 200)//height
+    );
+  }
   endShape();
+  */
 }
