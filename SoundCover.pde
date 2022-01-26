@@ -37,24 +37,24 @@ public void draw() {
   // Perform the analysis
   waveform.analyze();
   
-  int shapes = 10;
+  int shapes = 5;
   for(int j = 0; j < shapes-1; j++){
     beginShape();
-    vertex(0, (100*j)+70);
-    vertex(200,(100*j)+70);
+    vertex(40, 100+(j*45));
+    vertex(120,100+(j*45));
     
     //draw the sampled active data
     for(int i = (samples/shapes)*j; i < (samples/shapes)*(j+1); i++){
       // Draw current data of the waveform
       // Each sample in the data array is between -1 and +1 
       vertex(
-        map(i, (samples/shapes)*j, (samples/shapes)*(j+1), 200, 520), //width
-        map(waveform.data[i], -1, 1, 0+(j*70), 70+(j*120))//height
+        map(i, (samples/shapes)*j, (samples/shapes)*(j+1), 160, 580), //width
+        (waveform.data[i]*50)+(100+(j*45))
       );
     }
     
-    vertex(520, (100*j)+70);
-    vertex(720,(100*j)+70);
+    vertex(600,100+(j*45));
+    vertex(680,100+(j*45));
     endShape();
   }
   delay(200);
